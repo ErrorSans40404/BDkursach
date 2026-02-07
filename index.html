@@ -202,17 +202,17 @@ session_start();
     <div class="container">
         <nav>
             <div class="menu">
-                <form action="orders.php" method="get">
+                <form action="orders.html" method="get">
                     <button type="submit" class="menu-btn">Просмотреть заказы</button>
                 </form>
 
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <!-- Пользователь вошел в аккаунт -->
-                    <a href="workplace.php" class="menu-btn">Перейти на рабочее место</a>
-                    <a href="logout.php" class="logout-btn">Выйти</a>
+                    <a href="workplace.html" class="menu-btn">Перейти на рабочее место</a>
+                    <a href="logout.html" class="logout-btn">Выйти</a>
                 <?php else: ?>
                     <!-- Пользователь не вошел в аккаунт -->
-                    <a href="login.php" class="menu-btn">Войти</a>
+                    <a href="login.html" class="menu-btn">Войти</a>
                 <?php endif; ?>
             </div>
         </nav>
