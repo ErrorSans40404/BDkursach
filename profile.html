@@ -3,7 +3,7 @@ session_start();
 
 // Проверка авторизации
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: login.html');
     exit();
 }
 
@@ -310,7 +310,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="container">
             <div class="header-content">
                 <h1>Свадебный салон - Личный кабинет</h1>
-                <a href="logout.php" class="logout-btn">Выйти</a>
+                <a href="logout.html" class="logout-btn">Выйти</a>
             </div>
         </div>
     </header>
@@ -383,13 +383,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </form>
 
                 <div class="back-link">
-                    <a href="workplace.php">← Перейти на рабочее место</a>
+                    <a href="workplace.html">← Перейти на рабочее место</a>
                 </div>
 
             <?php else: ?>
                 <div class="message error">
                     <?php echo htmlspecialchars($error); ?>
-                    <p><a href="login.php">Войти в систему</a></p>
+                    <p><a href="login.html">Войти в систему</a></p>
                 </div>
             <?php endif; ?>
         </div>
