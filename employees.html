@@ -3,7 +3,7 @@ session_start();
 
 // Проверка авторизации
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: login.html');
     exit();
 }
 
@@ -36,7 +36,7 @@ try {
 
 // Если не администратор - редирект
 if (!$is_admin) {
-    header('Location: workplace.php');
+    header('Location: workplace.html');
     exit();
 }
 
@@ -315,9 +315,9 @@ try {
     </div>
 
     <div class="nav-links">
-        <a href="workplace.php" class="nav-link">← Назад в рабочее место</a>
-        <a href="index.php" class="nav-link">На главную</a>
-        <a href="logout.php" class="nav-link">Выйти</a>
+        <a href="workplace.html" class="nav-link">← Назад в рабочее место</a>
+        <a href="index.html" class="nav-link">На главную</a>
+        <a href="logout.html" class="nav-link">Выйти</a>
     </div>
 
     <!-- Форма добавления сотрудника -->
@@ -449,7 +449,7 @@ try {
     </div>
 
     <div class="nav-links">
-        <a href="workplace.php" class="nav-link">← Назад в рабочее место</a>
+        <a href="workplace.html" class="nav-link">← Назад в рабочее место</a>
     </div>
 </body>
 </html>
