@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $success = 'Вход выполнен успешно!';
 
                     // Перенаправление на защищенную страницу
-                    header('Location: profile.php');
+                    header('Location: profile.html');
                     exit();
                 } else {
                     $error = 'Неверный пароль';
@@ -237,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div class="back-link">
-            <a href="index.php">← Вернуться на главную</a>
+            <a href="index.html">← Вернуться на главную</a>
         </div>
     </div>
 
