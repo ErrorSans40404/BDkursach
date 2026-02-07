@@ -1,0 +1,372 @@
+<?php
+session_start();
+
+// Проверка авторизации
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Подключение к базе данных
+$host = 'localhost';
+$dbname = 'weddingsalondb';
+$username = 'root';
+$password = '';
+
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch(PDOException $e) {
+    die("Ошибка подключения к базе данных: " . $e->getMessage());
+}
+
+// Обработка добавления нового клиента
+$error = '';
+$success = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_client'])) {
+    $firstName = trim($_POST['first_name'] ?? '');
+    $lastName = trim($_POST['last_name'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $weddingDate = trim($_POST['wedding_date'] ?? '');
+    $budget = trim($_POST['budget'] ?? '');
+    $notes = trim($_POST['notes'] ?? '');
+
+    // Валидация
+    if (empty($firstName) || empty($lastName) || empty($phone)) {
+        $error = 'Имя, фамилия и телефон обязательны для заполнения';
+    } elseif (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Введите корректный email адрес';
+    } else {
+        try {
+            $stmt = $pdo->prepare("INSERT INTO clients (FirstName, LastName, Phone, Email, RegistrationDate, WeddingDate, Budget, Notes, Status)
+                                  VALUES (:first_name, :last_name, :phone, :email, NOW(), :wedding_date, :budget, :notes, 'Активен')");
+
+            $stmt->execute([
+                ':first_name' => $firstName,
+                ':last_name' => $lastName,
+                ':phone' => $phone,
+                ':email' => $email ?: null,
+                ':wedding_date' => $weddingDate ?: null,
+                ':budget' => $budget ?: null,
+                ':notes' => $notes ?: null
+            ]);
+
+            $success = 'Клиент успешно добавлен!';
+
+            // Очищаем поля формы
+            $_POST = [];
+
+        } catch(PDOException $e) {
+            $error = 'Ошибка при добавлении клиента: ' . $e->getMessage();
+        }
+    }
+}
+
+// Получение списка клиентов
+$clients = [];
+try {
+    $stmt = $pdo->query("SELECT * FROM clients ORDER BY ClientID DESC");
+    $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch(PDOException $e) {
+    $error = 'Ошибка при загрузке списка клиентов: ' . $e->getMessage();
+}
+?>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Клиенты - Свадебный салон</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffe6f2;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .header {
+            background-color: #ff66b2;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .nav-link {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 8px 15px;
+            background-color: #ffccdd;
+            color: #333;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .nav-link:hover {
+            background-color: #ff99cc;
+        }
+
+        .section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            color: #ff3399;
+            margin-top: 0;
+            border-bottom: 2px solid #ffccdd;
+            padding-bottom: 10px;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .error {
+            background-color: #ffcccc;
+            color: #cc0000;
+            border: 1px solid #ff9999;
+        }
+
+        .success {
+            background-color: #ccffcc;
+            color: #006600;
+            border: 1px solid #99ff99;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ff99cc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+            height: 80px;
+        }
+
+        .submit-btn {
+            background-color: #ff66b2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .submit-btn:hover {
+            background-color: #ff3399;
+        }
+
+        .clients-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .clients-table th,
+        .clients-table td {
+            border: 1px solid #ff99cc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .clients-table th {
+            background-color: #ffccdd;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .clients-table tr:nth-child(even) {
+            background-color: #fff5f9;
+        }
+
+        .clients-table tr:hover {
+            background-color: #ffe6f2;
+        }
+
+        .budget {
+            text-align: right;
+        }
+
+        .status-active {
+            color: #006600;
+            font-weight: bold;
+        }
+
+        .required {
+            color: #ff0000;
+        }
+
+        @media (max-width: 768px) {
+            .clients-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Управление клиентами</h1>
+    </div>
+
+    <div class="nav-links">
+        <a href="workplace.php" class="nav-link">← Назад в рабочее место</a>
+        <a href="index.php" class="nav-link">На главную</a>
+        <a href="logout.php" class="nav-link">Выйти</a>
+    </div>
+
+    <!-- Форма добавления клиента -->
+    <div class="section">
+        <h2 class="section-title">Добавить нового клиента</h2>
+
+        <?php if ($error): ?>
+            <div class="message error"><?php echo htmlspecialchars($error); ?></div>
+        <?php endif; ?>
+
+        <?php if ($success): ?>
+            <div class="message success"><?php echo htmlspecialchars($success); ?></div>
+        <?php endif; ?>
+
+        <form method="POST" action="">
+            <div class="form-group">
+                <label for="first_name">Имя <span class="required">*</span></label>
+                <input type="text" id="first_name" name="first_name" required
+                       value="<?php echo htmlspecialchars($_POST['first_name'] ?? ''); ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="last_name">Фамилия <span class="required">*</span></label>
+                <input type="text" id="last_name" name="last_name" required
+                       value="<?php echo htmlspecialchars($_POST['last_name'] ?? ''); ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Телефон <span class="required">*</span></label>
+                <input type="tel" id="phone" name="phone" required
+                       pattern="[\+]{0,1}[0-9\s\-\(\)]+"
+                       placeholder="+79001234567"
+                       value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email"
+                       value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="wedding_date">Дата свадьбы</label>
+                <input type="date" id="wedding_date" name="wedding_date"
+                       value="<?php echo htmlspecialchars($_POST['wedding_date'] ?? ''); ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="budget">Бюджет (руб.)</label>
+                <input type="number" id="budget" name="budget" min="0" step="1000"
+                       value="<?php echo htmlspecialchars($_POST['budget'] ?? ''); ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Примечания</label>
+                <textarea id="notes" name="notes"><?php echo htmlspecialchars($_POST['notes'] ?? ''); ?></textarea>
+            </div>
+
+            <button type="submit" name="add_client" class="submit-btn">Добавить клиента</button>
+        </form>
+    </div>
+
+    <!-- Список клиентов -->
+    <div class="section">
+        <h2 class="section-title">Список клиентов</h2>
+
+        <?php if (empty($clients)): ?>
+            <p>Клиентов пока нет.</p>
+        <?php else: ?>
+            <table class="clients-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Имя</th>
+                        <th>Фамилия</th>
+                        <th>Телефон</th>
+                        <th>Email</th>
+                        <th>Дата регистрации</th>
+                        <th>Дата свадьбы</th>
+                        <th>Бюджет</th>
+                        <th>Примечания</th>
+                        <th>Статус</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($clients as $client): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($client['ClientID']); ?></td>
+                        <td><?php echo htmlspecialchars($client['FirstName']); ?></td>
+                        <td><?php echo htmlspecialchars($client['LastName']); ?></td>
+                        <td><?php echo htmlspecialchars($client['Phone']); ?></td>
+                        <td><?php echo htmlspecialchars($client['Email'] ?? '-'); ?></td>
+                        <td><?php echo htmlspecialchars($client['RegistrationDate']); ?></td>
+                        <td><?php echo htmlspecialchars($client['WeddingDate'] ?? '-'); ?></td>
+                        <td class="budget">
+                            <?php
+                            if ($client['Budget']) {
+                                echo number_format($client['Budget'], 0, '', ' ') . ' руб.';
+                            } else {
+                                echo '-';
+                            }
+                            ?>
+                        </td>
+                        <td><?php echo htmlspecialchars($client['Notes'] ?? '-'); ?></td>
+                        <td class="status-active"><?php echo htmlspecialchars($client['Status']); ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </div>
+
+    <div class="nav-links">
+        <a href="workplace.php" class="nav-link">← Назад в рабочее место</a>
+    </div>
+</body>
+</html>
