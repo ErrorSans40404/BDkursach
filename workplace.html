@@ -3,7 +3,7 @@ session_start();
 
 // Проверка авторизации
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: login.html');
     exit();
 }
 
@@ -187,23 +187,23 @@ try {
     <h2 class="main-title">Рабочее место менеджера</h2>
 
     <div class="buttons-container">
-        <a href="clients.php" class="main-button">Просмотреть клиентов</a>
-        <a href="orders.php" class="main-button">Просмотреть заказы</a>
-        <a href="services.php" class="main-button">Просмотреть услуги</a>
-        <a href="products.php" class="main-button">Просмотреть продукты</a>
+        <a href="clients.html" class="main-button">Просмотреть клиентов</a>
+        <a href="orders.html" class="main-button">Просмотреть заказы</a>
+        <a href="services.html" class="main-button">Просмотреть услуги</a>
+        <a href="products.html" class="main-button">Просмотреть продукты</a>
     </div>
 
     <?php if ($is_admin): ?>
     <div class="admin-section">
         <h3 class="admin-title">Административные функции</h3>
-        <a href="employees.php" class="admin-button">Просмотреть сотрудников</a>
+        <a href="employees.html" class="admin-button">Просмотреть сотрудников</a>
     </div>
     <?php endif; ?>
 
     <div class="navigation">
-        <a href="profile.php" class="nav-link">Мой профиль</a>
-        <a href="index.php" class="nav-link">На главную</a>
-        <a href="logout.php" class="nav-link logout-link">Выйти</a>
+        <a href="profile.html" class="nav-link">Мой профиль</a>
+        <a href="index.html" class="nav-link">На главную</a>
+        <a href="logout.html" class="nav-link logout-link">Выйти</a>
     </div>
 
     <div class="simple-footer">
